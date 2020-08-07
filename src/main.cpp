@@ -1,18 +1,15 @@
 #include <Homie.h>
 
-#define FRONT_DOOR 34
 #define HW_UART_SPEED 115200L
+#define FRONT_DOOR 34
 #define LED_NOTIFY 32
 #define LED_STATUS 27
 
 int frontVal = 1;
 
 bool FD_Reading;
-bool BD_Reading;
 int FD_Counter = 0;
-int BD_Counter = 0;
 int FD_Max = 0;
-int BD_Max = 0;
 
 bool broadcastHandler(const String& level, const String& value) {
   Serial << "Received broadcast level " << level << ": " << value << endl;
