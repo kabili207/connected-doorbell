@@ -11,6 +11,8 @@ bool FD_Reading;
 int FD_Counter = 0;
 int FD_Max = 0;
 
+HomieNode bellNode("doorbell", "Doorbell", "system.rawbutton");
+
 bool broadcastHandler(const String& level, const String& value) {
   Serial << "Received broadcast level " << level << ": " << value << endl;
   return true;
@@ -37,8 +39,10 @@ void loopHandler() {
   if (FD_Counter > 400) {
     Serial.println("Ding dong");
     digitalWrite(LED_NOTIFY, HIGH);
-    Homie.getMqttClient().publish("homie/$broadcast/doorbell", 1, false, "Ding dong");
+    bellNode.setProperty("state").send("PRESSED");
+    //Homie.getMqttClient().publish("homie/$broadcast/doorbell", 1, false, "Ding dong");
     delay(3000); //A delay to allow for the doorbell to stop being pushed, to avoid multiple publishes for a single doorbell push
+    bellNode.setProperty("state").send("RELEASED");
     digitalWrite(LED_NOTIFY, LOW);
     FD_Counter = 0;
     FD_Max = 0;
@@ -50,11 +54,12 @@ void setup() {
   pinMode(LED_NOTIFY, OUTPUT);
   pinMode(LED_STATUS, OUTPUT);
   Serial.begin(HW_UART_SPEED);
-  Serial << endl << endl;
+  Serial << endl;
 
-  Homie_setFirmware("doorbell", "1.0.0"); // The underscore is not a typo! See Magic bytes
+  Homie_setFirmware("doorbell", "1.1.0"); // The underscore is not a typo! See Magic bytes
   Homie.setLoopFunction(loopHandler);
   Homie.setBroadcastHandler(broadcastHandler);
+  bellNode.advertise("state").setName("State").setDatatype("enum").setFormat("PRESSED,RELEASED").setRetained(false);
   Homie.setLedPin(LED_STATUS, HIGH);
   Homie.setup();
 }
